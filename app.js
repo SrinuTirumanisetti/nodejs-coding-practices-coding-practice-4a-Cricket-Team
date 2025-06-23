@@ -31,3 +31,20 @@ app.get("/players", async (request, response) => {
   const playerArray = await db.all(getPlayerQuery);
   response.send(playerArray);
 });
+
+app.post("/players/", async (request, response) => {
+  const { playerName, jerseyNumber, role } = request.body;
+
+  const addPlayerQuery = `
+    INSERT INTO cricket_team (player_name, jersey_number, role)
+    VALUES (?, ?, ?);
+  `;
+
+  const dbResponse = await db.run(addPlayerQuery, [
+    playerName,
+    jerseyNumber,
+    role,
+  ]);
+  const playerId = dbResponse.lastID;
+  response.send("Player Added to Team");
+});
