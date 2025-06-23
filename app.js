@@ -27,7 +27,7 @@ const InitializeDBAndServer = async () => {
 InitializeDBAndServer();
 
 app.get("/players", async (request, response) => {
-  const getPlayerQuery = `SELECT * FROM cricket_team;`;
+  const getPlayersQuery = `SELECT * FROM cricket_team;`;
   const playerArray = await db.all(getPlayerQuery);
   response.send(playerArray);
 });
@@ -47,4 +47,13 @@ app.post("/players/", async (request, response) => {
   ]);
   const playerId = dbResponse.lastID;
   response.send("Player Added to Team");
+});
+
+app.get("/players/:playerId", async (request, response) => {
+  const { playerId } = request.params;
+  const getPlayerQuery = `
+    SELECT * FROM cricket_team WHERE player_id = ?;
+  `;
+  const player = await db.get(getPlayerQuery, [playerId]);
+  response.send(player);
 });
