@@ -26,10 +26,18 @@ const InitializeDBAndServer = async () => {
 
 InitializeDBAndServer();
 
-app.get("/players", async (request, response) => {
+app.get("/players/", async (request, response) => {
   const getPlayersQuery = `SELECT * FROM cricket_team;`;
-  const playerArray = await db.all(getPlayerQuery);
-  response.send(playerArray);
+  const players = await db.all(getPlayersQuery);
+
+  const formattedPlayers = players.map((player) => ({
+    playerId: player.player_id,
+    playerName: player.player_name,
+    jerseyNumber: player.jersey_number,
+    role: player.role,
+  }));
+
+  response.send(formattedPlayers);
 });
 
 app.post("/players/", async (request, response) => {
@@ -49,11 +57,51 @@ app.post("/players/", async (request, response) => {
   response.send("Player Added to Team");
 });
 
-app.get("/players/:playerId", async (request, response) => {
+app.get("/players/:playerId/", async (request, response) => {
   const { playerId } = request.params;
   const getPlayerQuery = `
     SELECT * FROM cricket_team WHERE player_id = ?;
   `;
   const player = await db.get(getPlayerQuery, [playerId]);
-  response.send(player);
+
+  const formattedPlayer = {
+    playerId: player.player_id,
+    playerName: player.player_name,
+    jerseyNumber: player.jersey_number,
+    role: player.role,
+  };
+
+  response.send(formattedPlayer);
 });
+
+app.put("/players/:playerId", async (request, response) => {
+  const { playerId } = request.params;
+  const { playerName, jerseyNumber, role } = request.body;
+
+  const updateQuery = `
+    UPDATE cricket_team
+    SET 
+      player_name = ?, 
+      jersey_number = ?, 
+      role = ?
+    WHERE 
+      player_id = ?;
+  `;
+
+  await db.run(updateQuery, [playerName, jerseyNumber, role, playerId]);
+  response.send("Player Details Updated");
+});
+
+app.delete("/players/:playerId/", async (request, response) => {
+  const { playerId } = request.params;
+
+  const deleteQuery = `
+    DELETE FROM cricket_team
+    WHERE player_id = ?;
+  `;
+
+  await db.run(deleteQuery, [playerId]);
+  response.send("Player Removed");
+});
+
+module.exports = app;
